@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  sveltekit-app:
+    build: .
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mysql
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - NODE_ENV=development
+    volumes:
+      - ./:/app # Bind mount the current directory to /app in the container
+      - /app/node_modules # Prevent overwriting node_modules inside the container
+    networks:
+      - app-network
+    command: >
+      sh -c "
+        ./wait-for-it.sh mysql:3306 --timeout=90 --strict &&
+        npx knex migrate:latest &&
+        npm run build &&
+        npm run dev
+      "
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  mysql_data:
