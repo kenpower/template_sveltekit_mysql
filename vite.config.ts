@@ -13,5 +13,10 @@ export default defineConfig({
 			usePolling: true, // Enable polling to detect file changes
 			interval: 1000 // Polling interval in milliseconds (adjust as needed)
 		}
+	},
+	build: {
+		rollupOptions: {
+			//external: ['jsonwebtoken']
+		}
 	}
 });

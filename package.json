@@ -40,6 +40,7 @@
 		"@sveltejs/adapter-node": "^5.2.5",
 		"bcrypt": "^5.1.1",
 		"dotenv": "^16.4.5",
+		"jsonwebtoken": "^9.0.2",
 		"knex": "^3.1.0",
 		"mysql2": "^3.11.3"
 	}

@@ -21,4 +21,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 #mySQL
+/mysql_data
 mysql.sock
