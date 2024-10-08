@@ -31,43 +31,47 @@ const user_from_login_token = (event) => {
 	return null;
 };
 
-export async function handle({ event, resolve }) {
-	// Check if the user is authenticated
+const JWT_COOKIE_SECRET_KEY = process.env.JWT_COOKIE_SECRET_KEY;
 
-	console.log('Full URL:', event.url.href);
-
-	event.locals.user = null;
-
-	const JWT_COOKIE_SECRET_KEY = process.env.JWT_COOKIE_SECRET_KEY;
+const getUserFromSessionCookie = (event) => {
 	if (event.cookies.get('session_id')) {
 		console.log('Session_id cookie found');
 		try {
 			const user = jwt.verify(event.cookies.get('session_id'), JWT_COOKIE_SECRET_KEY);
 			console.log('Decoded user from session cookie:', user);
-			event.locals.user = user;
+			return user;
 		} catch (error) {
 			console.log('Error decoding JWT token in cookie:', error);
 		}
 	}
-	if (!event.locals.user) {
-		console.log('Checking for login token in URL');
-		const user = user_from_login_token(event);
-		if (user) {
-			event.locals.user = user;
-			const token = jwt.sign(user, JWT_COOKIE_SECRET_KEY);
-			console.log('Encoded user from login token:', user);
-			console.log('Setting session_id cookie');
-			event.cookies.set('session_id', token, {
-				path: '/',
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production'
-			});
-		} else {
-			console.log('No login token found in URL');
-		}
-	}
+	return null;
+};
 
-	// Redirect to login if the user is not authenticated and accessing a protected route
+const getUserAndSetCookieFromLoginToken = (event) => {
+	console.log('Checking for login token in URL');
+	const user = user_from_login_token(event);
+	if (user) {
+		delete user.iat;
+		delete user.exp;
+		const token = jwt.sign(user, JWT_COOKIE_SECRET_KEY, { expiresIn: '30d' });
+		console.log('Encoded user from login token:', user);
+		console.log('Setting session_id cookie');
+		event.cookies.set('session_id', token, {
+			path: '/',
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production'
+		});
+		return user;
+	} else {
+		console.log('No login token found in URL');
+	}
+};
+
+export async function handle({ event, resolve }) {
+	// Check if the user is loggedin, authenticated
+	event.locals.user = getUserFromSessionCookie(event) ?? getUserAndSetCookieFromLoginToken(event);
+
+	// Redirect to login if the user is not authenticated
 	if (!event.locals.user) {
 		console.log('User not authenticated, redirecting to sign in service');
 		//go to sign in service
