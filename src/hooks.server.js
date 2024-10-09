@@ -68,18 +68,31 @@ const getUserAndSetCookieFromLoginToken = (event) => {
 };
 
 export async function handle({ event, resolve }) {
+	console.log('Running server-side hook');
+	console.log('===========================');
 	// Check if the user is loggedin, authenticated
 	event.locals.user = getUserFromSessionCookie(event) ?? getUserAndSetCookieFromLoginToken(event);
 
+	const url = new URL(event.url.href);
+
 	// Redirect to login if the user is not authenticated
 	if (!event.locals.user) {
+		url.search = '';
 		console.log('User not authenticated, redirecting to sign in service');
-		//go to sign in service
-		const url = new URL(event.url.href);
-		url.search = ''; // Remove the old token from the URL
-		console.log(url.href);
 		return Response.redirect(`https://compucore.itcarlow.ie/auth/sign_in?redirect=${url.href}`);
 	}
+
+	//remove token from url
+	// if (url.searchParams.has('token')) {
+	// 	console.log('Removing token from URL');
+	// 	console.log('cookies', event.cookies);
+	// 	url.searchParams.delete('token');
+	// 	return new Response(null, {
+	// 		status: 302,
+	// 		headers: new Headers({ Location: url.toString() })
+	// 	});
+	// }
+
 	// Continue to the requested route
 	return await resolve(event);
 }
