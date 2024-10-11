@@ -18,10 +18,10 @@ const user_from_login_token = (event) => {
 	const token = event.url.searchParams.get('token');
 	if (token) {
 		//decode the jwt token
-		const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+		const AUTH_SERVICE_JWT_SECRET_KEY = process.env.AUTH_SERVICE_JWT_SECRET_KEY;
 
 		try {
-			const user = jwt.verify(token, JWT_SECRET_KEY);
+			const user = jwt.verify(token, AUTH_SERVICE_JWT_SECRET_KEY);
 			return user;
 		} catch (error) {
 			console.log('Error decoding login token:', error);
@@ -82,17 +82,5 @@ export async function handle({ event, resolve }) {
 		return Response.redirect(`https://compucore.itcarlow.ie/auth/sign_in?redirect=${url.href}`);
 	}
 
-	//remove token from url
-	// if (url.searchParams.has('token')) {
-	// 	console.log('Removing token from URL');
-	// 	console.log('cookies', event.cookies);
-	// 	url.searchParams.delete('token');
-	// 	return new Response(null, {
-	// 		status: 302,
-	// 		headers: new Headers({ Location: url.toString() })
-	// 	});
-	// }
-
-	// Continue to the requested route
 	return await resolve(event);
 }
