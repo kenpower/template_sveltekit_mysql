@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  sveltekit-app:
+  grad-app:
     build: .
     ports:
       - '8053:3000'
